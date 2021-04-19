@@ -1,6 +1,8 @@
 const axios = require('axios')
+require('dotenv').config()
 const schedule = require('node-schedule')
 const influxLog = require('./influx')
+const DEBUG = process.env.DEBUG
 
 async function makeRequest({url, method, headers, data}) {
   let response = {}
@@ -191,11 +193,17 @@ async function update() {
         const rates = await getStats('F2POOL ETH', 'f2pool')
         toLog = {...toLog, ...rates}
     } catch (e) {console.log(e.error)}
-//   console.log(toLog)
+  if (DEBUG) {
+    console.log(toLog)
+  } else {
     influxLog(toLog)
+  }
 }
 
 ;(async () => {
-// update()
-  schedule.scheduleJob(`0 * * * * *`, update)
+    if (DEBUG) {
+        update()
+      } else {
+        schedule.scheduleJob(`0 * * * * *`, update)
+      }
 })()
